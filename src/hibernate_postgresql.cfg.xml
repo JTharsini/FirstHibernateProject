@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+		"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+		"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+    	<!-- Database connection settings -->
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.connection.password">cambio123</property>
+        <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/DB_JayJay</property>
+        <property name="hibernate.connection.username">postgres</property>
+        
+        <!-- JDBC connection pool (use the built in) -->
+        <property name="connection.pool_size">1</property>
+        
+        <!-- SQL dialect -->
+        <property name="dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+        
+        <!-- Disable the second-level cache -->
+        <!--<property name="cache.provider_class">org.hibernate.cache.NoCacheProvider</property>  -->
+        
+        <!-- Second-level cache -->
+        <property name="cache.region.factory_class">org.hibernate.cache.ehcache.EhCacheRegionFactory</property>
+        <property name="cache.provider_class">net.sf.ehcache.hibernate.EhCacheProvider</property>
+        <property name="hibernate.cache.use_second_level_cache">true</property>
+        <property name="hibernate.cache.use_query_cache">true</property>
+        
+        <!-- Echo all executed SQL to stdout -->
+        <property name="show_sql">true</property>
+        
+        <!-- Drop and re-create the database schema on startup -->
+        <!--<property name="hbm2ddl.auto">update</property>  -->
+        <property name="hbm2ddl.auto">create</property>
+        
+        <!-- Names the annotated entity class -->
+        <mapping class="org.jeya.dto.UserDetails" />
+        <mapping class="org.jeya.dto.UserDetails2" />
+        <mapping class="org.jeya.dto.UserDetails3" />
+        <mapping class="org.jeya.dto.UserDetails4" />
+        <mapping class="org.jeya.dto.UserDetails5" />
+        <mapping class="org.jeya.dto.UserDetails6" />
+        <mapping class="org.jeya.dto.UserDetails7" />
+        <mapping class="org.jeya.dto.UserDetails8" />
+        <mapping class="org.jeya.dto.UserDetails9" />
+        <mapping class="org.jeya.dto.UserDetails10" />
+        <mapping class="org.jeya.dto.UserDetails11" />
+        <mapping class="org.jeya.dto.UserDetails12" />
+        <mapping class="org.jeya.dto.UserDetails13" />
+        <mapping class="org.jeya.dto.UserDetails14" />
+        <mapping class="org.jeya.dto.Vehicle" />
+        <mapping class="org.jeya.dto.Vehicle2" />
+        <mapping class="org.jeya.dto.Vehicle3" />
+        <mapping class="org.jeya.dto.Vehicle4" />
+        <mapping class="org.jeya.dto.Vehicle5" />
+        <mapping class="org.jeya.dto.Vehicle6" />
+        <mapping class="org.jeya.dto.Vehicle7" />
+        <mapping class="org.jeya.dto.Vehicle8" />
+        <mapping class="org.jeya.dto.TwoWheeler" />
+        <mapping class="org.jeya.dto.FourWheeler" />
+       	<mapping class="org.jeya.dto.TwoWheeler2" />
+        <mapping class="org.jeya.dto.FourWheeler2" />
+        <mapping class="org.jeya.dto.TwoWheeler3" />
+        <mapping class="org.jeya.dto.FourWheeler3" />
+    </session-factory>
+</hibernate-configuration>

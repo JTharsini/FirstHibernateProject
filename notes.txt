@@ -1,0 +1,282 @@
+setup:
+1. install sqlexplorer plugin in eclipse (need to install JBoss Tools plugin to do that)
+2. Create hibernate user library with provided jars and add it to build path
+3. New -> Hibernate -> Hibernate Configuration File (cfg.xml) -> Next -> Give a name for configuration file -> Get values from
+connection -> New -> Select regarding option -> 
+Add jdbc driver for the specific database in plus symbol window's jar list tab -> Add connection properties like database, url 
+&& etc -> Test connection -> if ping succeeded next and 
+file is there
+
+(hibernate.cfg.xml : default name for hibernate configuration file, no need to tell hibernate about name of the configuration 
+file if this name is used)
+
+only one session factory per application
+
+ <!-- Drop and re-create the database schema on startup -->
+        <property name="hbm2ddl.auto">create</property>
+is handy when need to do many changes in schema (while developing)
+
+<property name="hbm2ddl.auto">update</property> : there is a model change -> update
+
+<property name="show_sql">true</property> : to print SQL queries in console
+
+@Entity (name="TABLE_USER_DETAILS") is useful need to have different name for table from class or the other way round
+
+@Column(name = "COLUMN_USER_NAME") is useful need to have different name for column from attribute or the other way round
+
+It is allowed to have @Column annotation on top of getter method instead for having it on top of the attribute
+
+@Entity(name = "TABLE_USER_DETAILS_BY_ENTITY") vs @Table(name = "TABLE_USER_DETAILS_BY_TABLE"): entity is shown as 
+TABLE_USER_DETAILS_BY_ENTITY and
+actual table name is set as TABLE_USER_DETAILS_BY_TABLE
+
+@Basic is used to tell hibernate that specific attribute is persistable. By default for all attribute @Basic will be there
+
+static or transient attribute will not be saved
+
+attribute annotated with @Transient will not be saved
+
+@Temporal(value = TemporalType.DATE) : to save only date part(@Temporal(value = TemporalType.TIMESTAMP) is the default)
+
+@Lob
+private String description; : Large object - CLob : character large object, BLob : Byte large object (Hibernate chooses which 
+type needs to be selected based on the
+type of the attribute (String - CLob, byte - BLob)
+
+Natural key : unique column is used as primary key, which has a business significant
+Surrogate key : no business significant. dedicated to uniquely identify a record
+
+If a key is a surrogate key, hibernate is able to handle that. @GeneratedValue is used for that. (Insight: hibernate is 
+maintaining a sequence and use that to
+generate value)
+strategy=GenerationType.AUTO : let hibernate to decide the strategy to generate primary key
+
+------------------------------------------------------------------------------------------------
+
+one attribute -> multiple column (Eg: An attribute is an object or an attribute is a collection)
+
+Entity vs Value objects: Entity : needs to be saved in a separate table (UserDetails)
+Value objects: not have meaning itself. depend on another object (Address)
+
+value objects are saved along with entity with separate columns for them : value object needs to be marked as @Embeddable in the 
+class name, @Embedded in the 
+attribute name in another class.
+
+Having multiple value object with same type:
+Exception in thread "main" org.hibernate.MappingException: Repeated column in mapping for entity: org.jeya.dto.UserDetails 
+column: COLUMN_CITY 
+(should be mapped with insert="false" update="false")
+
+Solution: override column name for other attributes
+@AttributeOverride is used. Multiple @AttributeOverride are kept inside @AttributeOverrides
+
+Embedded object as a primary key : annotate that attribute with @EmbeddedId
+
+**************************************************************************************************
+
+Collection of object as attribute:
+
+separate table of collection and associated with user id
+
+@ElementCollection is annotated above the attribute with collection type
+
+@JoinTable(name="USER_ADDRESS",
+			joinColumns=@JoinColumn(name="USER_ID")) to have different name for joint table and column to join
+
+@CollectionId is used to have primary key for joint table for collection : hibernate specific annotation: unavailable in JPA
+
+Eager initialization vs Lazy initialization:
+Eager initialization - When Session.get() all the addresses will be fetched for user details.
+Lazy initialization - When userDetails.getListOfAddresses is invoked only addresses will be loaded. (default behavior)
+
+when getter is invoked data is load. It is done by a proxy class. subclass of user details is created as proxy and second level 
+of database operation is done
+in proxy class when getter is invoked.
+********************************************************************************************************
+
+One to one mapping:
+one entity inside another entity:
+(Difference between value objects (simple Address) and UserDetails Vs Vehicle and UserDetails: Address has no significant 
+without UserDetails, Vehicle is independent. Separate entity:
+see <mapping class="org.jeya.dto.Vehicle" /> is not available for Address and address is not saved separately)
+
+When there is no @OneToOne annotation in vehicle attribute:
+Exception in thread "main" org.hibernate.MappingException: Could not determine type for: org.jeya.dto.Vehicle, at table: 
+TABLE_USER_DETAILS5_BY_TABLE, for columns:
+[org.hibernate.mapping.Column(vehicle)]
+
+It is looking for a connection between both entities.
+@OneToOne will add extra column in UserDetails table (vehicle_vehicleid)
+
+*********************************************************************************************************
+
+One to many mapping:
+UserDetails with collection of vehicle. Create separate table to have  the relationship between vehicle and user details
+@OneToMany annotation is used
+-----------------------------------------------------------------------------------------------------------------------
+object on the many side of the relationship has the reference to the other object.
+One to many: having column for vehicle in UserDetails (multiple rows), having column for user in Vehicle is possible.
+to do that we need to have bidirectional relationship (oneToMany and manyToOne) in related places and need to set data both way
+(setUserDetails and setVehicle)
+----------------------------------------------------------------------------------------------------------------------- 
+***********************************************************************************************************
+Many to one mapping:
+Vehicle can have user details, Many vehicle will have one user
+
+When there is no @ManyToOne annotation in user details attribute:
+Exception in thread "main" org.hibernate.MappingException: Could not determine type for: org.jeya.dto.UserDetails7, at table: 
+Vehicle2, for columns: 
+[org.hibernate.mapping.Column(userDetails)]
+
+userdetails_userid column is added to vehicle table
+***********************************************************************************************************
+Many to many mapping:
+There should be separate table for mapping
+Rented vehicle for users
+@ManyToMany should be in both places with mappedBy in one place. if there is no mappedBy, two tables will be
+created with redundant data
+***********************************************************************************************************
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Many to one mapping for Vehicle to user details. If there is no user for a vehicle. Hibernate throws an exception. need to 
+suppress this exception.
+@ManyToOne
+@JoinColumn(name="USERID")
+@NotFound(action=NotFoundAction.IGNORE) // if user details is not found just ignore it
+private UserDetails8 userDetails;
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Hibernate maintains semantic in order to maintain a collection
+
+Eg: Bag semantic, Bag semantic with ID, List semantic(List or ArrayList)
+Set semantic (Set), Map semantic (Map)
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+A user has 10 vehicles. Save them and delete them. need to do the create, update, delete.
+
+Error during managed flush [org.hibernate.TransientObjectException: object references an unsaved transient instance - save the 
+transient instance before flushing: org.jeya.dto.Vehicle5]:
+when try to save without cascade=CascadeType.PERSIST
+
+session.save(userDetails10); with cascade : same exception as above
+
+persist method should be used with cascade
+
+cascade=CascadeType.ALL : to perform operation in cascade for all detach, persist, merge, refresh and move operation
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Inheritance:
+
+problem in persisting only subclasses as entity: 
+
+1. (can't use polymorphism : Vehicle v - dynamically change vehicle)
+2. auto data fill is not in both table
+
+Hibernate implements a strategy by default known as Single table strategy: dtype, vehicleid, vehiclename, steeringhandle, 
+steeringwheel (saved all three of vehicle, two wheeler 
+and three wheeler are saved in single table.
+
+dtype : to identify class of object - discriminator
+
+override the discriminator value : @DiscriminatorValue("BIKE")
+
+------------------------------------------------------------------------------------------------------------------
+
+Table per class strategy:
+
+table per class and attributes from parent class are inherited and they are separate columns in subclass table
+
+advantage:
+normalized form
+
+Disadvantage:
+redundant columns in each subclasses.
+------------------------------------------------------------------------------------------------------------------
+Joined strategy:
+
+Attributes related with super class will be saved in super class table and others will be saved in sub class table. Query to get 
+entire subclass record:
+select * from Vehicle8 join FourWheeler3 on Vehicle8.vehicleid = FourWheeler3.vehicleid
+
+advantage:
+more normalized form than table per class strategy
+
+------------------------------------------------------------------------------------------------------------------
+Not saved object: Transient
+after a session.save(user); changes will be taken as update statement before commit the transaction.
+Once an object is provided to Hibernate to save, it will track the changes for that object until the transaction is committed.
+
+Before session.save: Transient object
+after session.save : become persistent object
+after session.close : become detached object
+
+-------------------------------------------------------------------------------------------------------------------
+create: transient -> persistent -> detached
+read: persistent(by default) -> detached
+delete : transient <- persistent -> detached
+update : detached object + (user input) -> persistent (even though no changes in data, it will invoke update query: hibernate 
+doesn't know whether there is a change or not since update is from
+another session: if update call is from same session with no changes, will not invoked the call)
+(we can configure hibernate using @org.hibernate.annotations.Entity(selectBeforeUpdate=true) so that it can invoke update query, 
+only if there are changes available to be saved)
+
+===================================================================================================================
+
+HQL : Hibernate Query Language
+
+-instead for table names, class names are used
+-instead for column names, property names are used
+
+Named queries : to identify query easy and modify
+@NamedQuery(name = "UserDetails12.byId", query = "from UserDetails12 where userId = ?") in Entity and get as namedQuery from 
+session (HQL)
+
+Having SQL as named query: @NamedNativeQuery
+===================================================================================================================
+
+Hibernate data retrival:
+
+1. By session.get
+2. By query (HQL)
+3. By criteria API
+
+====================================================================================================================
+
+Criteria is like where clause
+
+Example : not considered null value and primary key value
+when it is needed to be excluded a property in Example, it can be done by
+	Example example2 = Example.create(exampleUser).excludeProperty("userName");
+	
+====================================================================================================================
+
+Cache in hibernate:
+
+By default first level cache:
+
+1. select again
+2. update without changes
+
+first level of caching in session: not available across session
+second level of caching : needs to be configured
+-across sessions
+-across applications
+-across clusters
+
+Second level cache:
+
+caching strategies:
+
+1. CacheConcurrencyStrategy.READ_ONLY : application do only reading operation, not write
+Pull the data, hibernate doesn't worry about data is dirty or clean since application is able to read only
+2. CacheConcurrencyStrategy.READ_WRITE : application do both of read and write operation
+Hibernate keeps track of dirty *** better option
+3. NONSTRICT_READ_WRITE : some cases, not checked for dirty data
+4. TRANSACTIONAL : make sure that cache is on transactional basis
+====================================================================================================================
+
+Why separate configuration for query cache: result by session.get is saved in different place than result by query
+(Second level caching differs from query cache)
